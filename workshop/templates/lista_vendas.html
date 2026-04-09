@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lista de Vendas</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --surface2: #242424;
+    --border: #2e2e2e;
+    --accent: #c8f060;
+    --text: #f0ede8;
+    --text-muted: #7a7870;
+    --text-soft: #b0ada8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  header {
+    padding: 20px 32px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 10;
+  }
+
+  .back-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 13px;
+    transition: color 0.15s;
+  }
+
+  .back-btn:hover { color: var(--accent); }
+
+  header .sep { color: var(--border); font-size: 20px; }
+
+  header h1 {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-soft);
+  }
+
+  .total-badge {
+    margin-left: auto;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+    background: var(--surface2);
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+  }
+
+  main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 32px 24px;
+  }
+
+  .venda-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    margin-bottom: 16px;
+    overflow: hidden;
+    transition: border-color 0.15s;
+  }
+
+  .venda-card:hover { border-color: #3e3e3e; }
+
+  .venda-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 22px;
+    cursor: pointer;
+    gap: 16px;
+  }
+
+  .venda-recibo {
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  .venda-data {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .venda-total {
+    font-family: 'DM Mono', monospace;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+    margin-left: auto;
+  }
+
+  .venda-toggle {
+    color: var(--text-muted);
+    font-size: 18px;
+    transition: transform 0.2s;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .venda-toggle.aberto { transform: rotate(180deg); }
+
+  .venda-linhas {
+    display: none;
+    border-top: 1px solid var(--border);
+    padding: 16px 22px;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .venda-linhas.aberto { display: flex; }
+
+  .linha-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .linha-item:last-child { border-bottom: none; }
+
+  .linha-nome { color: var(--text-soft); }
+
+  .linha-qty {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+    background: var(--surface2);
+    padding: 2px 8px;
+    border-radius: 6px;
+  }
+
+  .linha-preco {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--accent);
+  }
+
+  .vazio {
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="/" class="back-btn">
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <path d="M19 12H5M12 5l-7 7 7 7"/>
+    </svg>
+    Voltar
+  </a>
+  <span class="sep">›</span>
+  <h1>Lista de Vendas</h1>
+  <span class="total-badge">{{ vendas|length }} venda(s)</span>
+</header>
+
+<main>
+  {% if vendas %}
+    {% for venda in vendas %}
+    <div class="venda-card">
+      <div class="venda-header" onclick="toggleVenda({{ venda.recibo }})">
+        <span class="venda-recibo">#{{ venda.recibo }}</span>
+        <span class="venda-data">{{ venda.data }}</span>
+        <span class="venda-total">{{ venda.total }} €</span>
+        <span class="venda-toggle" id="toggle-{{ venda.recibo }}">▾</span>
+      </div>
+      <div class="venda-linhas" id="linhas-{{ venda.recibo }}">
+        {% for linha in venda.linhas.all %}
+        <div class="linha-item">
+          <span class="linha-nome">{{ linha.produto.nome }}</span>
+          <span class="linha-qty">× {{ linha.qtd }}</span>
+          <span class="linha-preco">{{ linha.preco }} €</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="vazio">Ainda não há vendas registadas.</div>
+  {% endif %}
+</main>
+
+<script>
+function toggleVenda(recibo) {
+  const linhas = document.getElementById('linhas-' + recibo);
+  const toggle = document.getElementById('toggle-' + recibo);
+  linhas.classList.toggle('aberto');
+  toggle.classList.toggle('aberto');
+}
+</script>
+
+</body>
+</html>
